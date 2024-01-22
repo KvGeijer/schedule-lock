@@ -14,3 +14,15 @@ body {
     margin: 20px auto;
 }
 
+#eventForm {
+    margin-bottom: 20px;
+}
+
+input[type="text"],
+input[type="date"] {
+    margin-right: 10px;
+}
+
+button {
+    cursor: pointer;
+}
