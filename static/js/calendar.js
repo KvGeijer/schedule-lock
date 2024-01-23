@@ -2,7 +2,7 @@ var calendar; // Global calendar object
 
 var calendarConfig = {
     // themeSystem: 'bootstrap5',
-		timezone: 'local',
+		// timezone: 'local',
     headerToolbar: {
         left: 'prev,next today',
         center: 'title',
@@ -24,7 +24,18 @@ document.addEventListener('DOMContentLoaded', function() {
     calendar = new FullCalendar.Calendar(calendarEl, calendarConfig);
 
     // Add event listener for form submission
-    document.getElementById('eventForm').addEventListener('submit', submitEventForm);
+    var eventForm = document.getElementById('eventForm')
+    if (eventForm) {
+        eventForm.addEventListener('submit', submitEventForm);
+
+        // Set some default values
+        var now = new Date();
+        var startDateInput = document.getElementById('startDate');
+        var startTimeInput = document.getElementById('startTime');
+
+        startDateInput.valueAsDate = now;
+        startTimeInput.value = now.toTimeString().substr(0, 5); // sets the time input to the current time
+    }
 
     // Load existing events
     fetchEventsAndRenderCalendar();
@@ -132,16 +143,6 @@ function updateCalendarWithEvent(eventData) {
         end: eventData.end
     });
 }
-
-// Set some default values for a reservation
-window.onload = function() {
-    var now = new Date();
-    var startDateInput = document.getElementById('startDate');
-    var startTimeInput = document.getElementById('startTime');
-
-    startDateInput.valueAsDate = now;
-    startTimeInput.value = now.toTimeString().substr(0, 5); // sets the time input to the current time
-};
 
 // Not used, but to be able to remove reservations
 function removeCalendarEvent(eventId) {
