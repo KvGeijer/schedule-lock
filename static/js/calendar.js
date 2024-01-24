@@ -3,6 +3,10 @@ var calendar; // Global calendar object
 var calendarConfig = {
     // themeSystem: 'bootstrap5',
 		// timezone: 'local',
+    eventClick: function(info) {
+        // info.el.style.borderColor = 'red';
+        displayEventPopup(info.event);
+    },
     headerToolbar: {
         left: 'prev,next today',
         center: 'title',
@@ -46,11 +50,15 @@ function fetchEventsAndRenderCalendar() {
     .then(response => response.json())
     .then(events => {
         events.forEach(function(event) {
+        console.log(event),
             calendar.addEvent({
                 id: event.id,
                 title: event.title,
                 start: event.start,
-                end: event.end
+                end: event.end,
+                description: event.description,
+                owner: event.owner,
+                is_owner: event.is_owner,
             });
         });
         calendar.render();
@@ -68,6 +76,7 @@ function submitEventForm(e) {
     var startDate = document.getElementById('startDate').value;
     var startTime = document.getElementById('startTime').value;
     var durationStr = document.getElementById('duration').value;
+    var description = document.getElementById('description').value;
 
     var durationMillisec = parseDuration(durationStr);
 
@@ -75,17 +84,16 @@ function submitEventForm(e) {
 		    var startDateTime = new Date(startDate + 'T' + startTime);
         var endDateTime = new Date(startDateTime.getTime() + durationMillisec);
 
-        addCalendarEvent(title, startDateTime.toISOString(), endDateTime.toISOString());
+        addCalendarEvent(title, startDateTime.toISOString(), endDateTime.toISOString(), description);
     }
 }
 
 // Parses a duration such as 1h 15m
 function parseDuration(durationStr) {
-    console.log('Trying to parse duration string:', durationStr);
-    var match = durationStr.match(/(:?(\d+)\s*h)?(:?\s*(\d+)\s*m)?/);
+    var match = durationStr.match(/((\d+)\s*h)?(\s*(\d+)\s*m)?/);
     if (match) {
-        var hours = parseInt(match[1] || 0, 10);
-        var minutes = parseInt(match[2] || 0, 10);
+        var hours = parseInt(match[2] || 0, 10);
+        var minutes = parseInt(match[4] || 0, 10);
 				if (hours == 0 && minutes == 0) {
 						console.log('Must specify a non-zero duration')
 				}
@@ -97,8 +105,14 @@ function parseDuration(durationStr) {
 }
 
 // Adds a new event
-function addCalendarEvent(title, start, end) {
-		var newEvent = { title: title, start: start, end: end };
+function addCalendarEvent(title, start, end, description) {
+		var newEvent = { 
+        title: title, 
+        start: start, 
+        end: end, 
+        description: description,
+        is_owner: true,
+    };
     if (isOverlapping(newEvent)) {
         console.error('Error: Event overlaps with an existing event');
         return;
@@ -119,7 +133,7 @@ function addCalendarEvent(title, start, end) {
     })
     .then(data => {
         console.log('Success:', data);
-        updateCalendarWithEvent(newEvent); // Update calendar only if successful
+        updateCalendarWithEvent(newEvent, data.owner); // Update calendar only if successful
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -135,20 +149,84 @@ function isOverlapping(newEvent) {
 }
 
 // Callback for updating the calendar view when we have added an event
-function updateCalendarWithEvent(eventData) {
+function updateCalendarWithEvent(eventData, owner) {
     // Use the global calendar instance to add the event
     calendar.addEvent({
         title: eventData.title,
         start: eventData.start,
-        end: eventData.end
+        end: eventData.end,
+        description: eventData.description,
+        is_owner: true,
+        owner: owner,
     });
 }
 
-// Not used, but to be able to remove reservations
-function removeCalendarEvent(eventId) {
-    var event = calendar.getEventById(eventId);
-    if (event) {
-        event.remove();
-    }
+// Display popup when clicking on an event
+function displayEventPopup(event) {
+    console.log(event);
+    var descriptionHTML = event.extendedProps.description 
+        ? `<p><strong>Description:</strong> ${event.extendedProps.description}</p>`
+        : '';
+
+    // Only display a cancel button if you are the owner
+    var cancelBtnHTML = event.extendedProps.is_owner 
+        ? `<button onclick="cancelEvent('${event.id}')">Cancel Event</button>`
+        : '';
+
+    var popup = document.createElement('div');
+    popup.id = 'eventPopup';
+    popup.className = 'event-popup';
+    popup.innerHTML = `
+        <div class="event-popup-content">
+            <h2>${event.title}</h2>
+            <p><strong>User:</strong> ${event.extendedProps.owner}</p>
+            <p><strong>Start:</strong> ${formatLocalDateTime(event.start)}</p>
+            <p><strong>End:  </strong> ${formatLocalDateTime(event.end)}</p>
+            ${descriptionHTML}
+            <button onclick="closeEventPopup()">Close</button>
+            ${cancelBtnHTML}
+        </div>`;
+    document.body.appendChild(popup);
 }
 
+// Function to cancel an event
+function cancelEvent(eventId) {
+    // Send request to the server to delete the event
+    // Assuming you have a route '/delete_event/<eventId>' to handle the deletion
+    fetch('/delete_event/' + eventId, { method: 'DELETE' })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Event cancelled:', data);
+        // Remove the event from the calendar
+        var event = calendar.getEventById(eventId);
+        if (event) {
+            event.remove();
+        }
+        closeEventPopup(); // Close the popup
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+// Function to format a date string
+function formatLocalDateTime(dateString) {
+    var date = new Date(dateString);
+    var timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Does not properly order date and month...
+    // var dateString = date.toLocaleDateString([], { day: '2-digit', month: '2-digit', year: 'numeric' });
+    var dateString = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    return `${timeString}, ${dateString}`;
+}
+
+function closeEventPopup() {
+    var popup = document.getElementById('eventPopup');
+    if (popup) {
+        document.body.removeChild(popup);
+    }
+}

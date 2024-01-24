@@ -2,11 +2,7 @@ WIP: just a simple way to reserve time on a shared resource. No enforcement on t
 
 Requirements:
 ```bash
-pip install Flask
-pip install Flask-SQLAlchemy
-pip install Flask-Migrate
-pip install Flask-Login
-pip install python-dateutil
+pip install Flask Flask-SQLAlchemy Flask-Migrate Flask-Login python-dateutil
 ```
 
 
