@@ -1,6 +1,8 @@
 var calendar; // Global calendar object
 
 var calendarConfig = {
+    eventMinHeight: 5,
+    slotEventOverlap: false,
     // themeSystem: 'bootstrap5',
 		// timezone: 'local',
     eventClick: function(info) {
