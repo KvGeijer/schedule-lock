@@ -76,7 +76,11 @@ def add_event():
         )
         db.session.add(new_event)
         db.session.commit()
-        return jsonify({'message': 'Event added successfully', 'owner': current_user.username}), 200
+        return jsonify({
+                       'message': 'Event added successfully', 
+                       'owner': current_user.username,
+                       'id': new_event.id,
+                    }), 200
     else:
         return jsonify({'message': 'User is not authenticated on backend side'}), 400
 

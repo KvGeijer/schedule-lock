@@ -133,7 +133,7 @@ function addCalendarEvent(title, start, end, description) {
     })
     .then(data => {
         console.log('Success:', data);
-        updateCalendarWithEvent(newEvent, data.owner); // Update calendar only if successful
+        updateCalendarWithEvent(newEvent, data.owner, data.id); // Update calendar only if successful
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -149,9 +149,10 @@ function isOverlapping(newEvent) {
 }
 
 // Callback for updating the calendar view when we have added an event
-function updateCalendarWithEvent(eventData, owner) {
+function updateCalendarWithEvent(eventData, owner, id) {
     // Use the global calendar instance to add the event
     calendar.addEvent({
+        id: id,
         title: eventData.title,
         start: eventData.start,
         end: eventData.end,
