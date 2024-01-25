@@ -42,3 +42,45 @@ button {
 .event-popup-content {
     margin-bottom: 20px;
 }
+
+#forms {
+    max-width: 17.5em;
+    padding: 20px;
+    margin: auto;
+    background-color: #f2f2f2;
+    border-radius: 10px;
+    margin-right: 0.5em;
+}
+
+#forms input[type="text"],
+#forms input[type="password"],
+#forms input[type="date"],
+#forms input[type="time"],
+#forms textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+#forms button {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 1.25em 1.7em;
+    margin: 0.5em 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#forms button:hover {
+    background-color: #45a049;
+}
+
+#forms form {
+    margin-bottom: 1em;
+}

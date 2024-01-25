@@ -1,6 +1,7 @@
 var calendar; // Global calendar object
 
 var calendarConfig = {
+    nowIndicator: true,
     eventMinHeight: 5,
     slotEventOverlap: false,
     // themeSystem: 'bootstrap5',
