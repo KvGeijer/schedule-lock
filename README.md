@@ -23,44 +23,16 @@ Then create a python file `config.py` with
 SECRET_KEY=<your secret key>
 ```
 
+# Setting it up as a server
 
-# Setting up an apache server for https
-
-Installing apache (with apt)
-
-```sh
-sudo apt install apache2
+The easiest way I found was hosting the server locally with [Waitress](https://flask.palletsprojects.com/en/2.3.x/deploying/waitress/) and then setting up a reverse-proxy with [Caddy](https://caddyserver.com/docs/quick-starts/reverse-proxy) to expose it as a https-server to the internet. For example, this could be a caddyfile:
 ```
+https://www.dcs-servers.tech http://www.dcs-servers.tech http://dcs-servers.tech {
+    redir https://dcs-servers.tech{uri}
+}
 
-Get an SSL certificate with Let't encrypt! You should use certbot to automate the process as they otherwise only last for 90 days. Go here for installation instructions: https://certbot.eff.org/instructions
-
-Creat a VirtualHost directive. store it in /etc/apache2/sites-available/yourdomain.conf
+https://dcs-servers.tech {
+    reverse_proxy localhost:8080
+} 
 ```
-<VirtualHost *:443>
-    ServerName <yourdomain>
-    DocumentRoot </path/to/your/app>
-
-    SSLEngine on
-    SSLCertificateFile /path/to/cert.pem
-    SSLCertificateKeyFile /path/to/privkey.pem
-    SSLCertificateChainFile /path/to/chain.pem
-
-    # Proxy to your Flask app
-    ProxyPass / http://127.0.0.1:5000/
-    ProxyPassReverse / http://127.0.0.1:5000/
-</VirtualHost>
-
-```
-
-Enable SSL and proxy modules
-```sh
-sudo a2enmod ssl
-sudo a2enmod proxy
-sudo a2enmod proxy_http
-```
-
-Restart Apache for the configs to take effect
-```sh
-sudo systemctl restart apache2
-```
-
+as Waitress by default hosts on localhost:8080.
