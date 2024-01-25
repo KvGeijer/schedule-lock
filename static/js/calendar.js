@@ -127,6 +127,7 @@ function addCalendarEvent(title, start, end, description) {
     })
     .then(response => {
         if (!response.ok) {
+            alert("Could not create event due to ovelap");
             throw new Error('Network response was not ok');
         }
         return response.json();
